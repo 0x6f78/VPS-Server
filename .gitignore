@@ -1,0 +1,8 @@
+**/.env
+**/acme.json
+**/*.log
+**/*.sql
+**/*.sql.gz
+**/www
+**/db/
+**/uploads/

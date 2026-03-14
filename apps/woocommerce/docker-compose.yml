@@ -1,0 +1,51 @@
+services:
+  wordpress:
+    image: wordpress:latest
+    container_name: ${PROJECT_NAME}-wordpress
+    restart: unless-stopped
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_NAME: ${DB_NAME}
+      WORDPRESS_DB_USER: ${DB_USER}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+
+      WORDPRESS_UPLOAD_MAX_FILESIZE: 64M
+      WORDPRESS_POST_MAX_SIZE: 64M
+      WORDPRESS_MEMORY_LIMIT: 256M
+      WORDPRESS_MAX_EXECUTION_TIME: 300
+      
+    volumes:
+      - ./www:/var/www/html              
+      - ./uploads:/var/www/html/wp-content/uploads 
+    networks:
+      - traefik-public
+      - traefik-private
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${PROJECT_NAME}.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.${PROJECT_NAME}.entrypoints=websecure"
+      - "traefik.http.routers.${PROJECT_NAME}.tls=true"
+      - "traefik.http.routers.${PROJECT_NAME}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.${PROJECT_NAME}.loadbalancer.server.port=80"
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8
+    container_name: ${PROJECT_NAME}-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - ./db:/var/lib/mysql
+    networks:
+      - traefik-private     
+
+networks:
+  traefik-public:
+    external: true             
+  traefik-private:
+    external: false

@@ -1,0 +1,35 @@
+api:
+  dashboard: false
+#  insecure: true # Enable HTTP dashboard, access via HTTP
+  insecure: false # Disable HTTP dashboard, access via HTTPS only
+
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure    
+          scheme: https	
+  websecure:
+    address: ":443"
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+  file:
+    filename: /traefik.yml
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: email@eaxample.com # Change it to get SSL certificate
+      storage: /acme.json
+      httpChallenge:
+        entryPoint: web
+        
+log:
+  level: INFO
+  format: common
+  filePath: /var/log/traefik/traefik.log
